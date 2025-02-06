@@ -25,8 +25,20 @@ export class MachinesService {
     }
   }
 
-  findAll() {
-    return `This action returns all machines`;
+async  findAll(): Promise<ICustomResponseService<MachineDto[]>> {
+    try {
+      const foundMachines = await this.prisma.machine.findMany({
+        where: {
+          delete_at: null
+        }
+      });
+
+      if (!foundMachines) throw new ConflictException('Nenhuma máquina encontrada');
+      
+      return { data: foundMachines };
+    } catch (error) {
+      throw error;
+    }
   }
 
   findOne(id: string) {
