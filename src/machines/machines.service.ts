@@ -41,8 +41,21 @@ async  findAll(): Promise<ICustomResponseService<MachineDto[]>> {
     }
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} machine`;
+ async findOne(id: string): Promise<ICustomResponseService<MachineDto>> {
+    try {
+      const foundMachine = await this.prisma.machine.findFirst({
+        where: {
+          id,
+          delete_at: null
+        }
+      });
+
+      if (!foundMachine) throw new ConflictException('Nenhuma máquina encontrada');
+
+      return { data: foundMachine };
+    } catch (error) {
+      throw error;
+    }
   }
 
   update(id: string, updateMachineDto: UpdateMachineDto) {
