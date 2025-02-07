@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
-import { MachinesService } from './machines.service'; import { CreateMachineDto, UpdateMachineDto } from './dto';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { QueryFilters } from 'src/shared/models';
+import { CreateMachineDto, UpdateMachineDto } from './dto';
+import { MachinesService } from './machines.service';
 
 @Controller('machines')
 export class MachinesController {
@@ -21,7 +22,7 @@ export class MachinesController {
     return this.machinesService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(@Param('id') id: string, @Body() updateMachineDto: UpdateMachineDto) {
     return this.machinesService.update(id, updateMachineDto);
   }

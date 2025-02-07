@@ -1,14 +1,42 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { ICustomResponseService } from 'src/shared/interfaces';
 import { QueryFilters } from 'src/shared/models';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMachineDto, MachineDto, UpdateMachineDto } from './dto';
 import { machine, Prisma } from '@prisma/client';
 import { EStatus } from 'src/shared/enums';
+import { Client, ClientKafka, Transport } from '@nestjs/microservices';
+import { Partitioners } from 'kafkajs';
 
 @Injectable()
-export class MachinesService {
+export class MachinesService implements OnModuleInit {
+  @Client({
+    transport: Transport.KAFKA,
+    options: {
+      client: {
+        clientId: process.env.KAFKA_CLIENT_ID,
+        brokers: [process.env.KAFKA_URL],
+      },
+      consumer: {
+        groupId: process.env.KAFKA_CONSUMER_ID,
+        allowAutoTopicCreation: true,
+      },
+      producer: {
+        createPartitioner: Partitioners.LegacyPartitioner,
+      },
+    },
+  })
+  private client: ClientKafka;
+  private requestPatterns = ['machine-event'];
+
   constructor(private prisma: PrismaService) { }
+  async onModuleInit(): Promise<void> {
+    this.requestPatterns.map(async pattern => {
+      this.client.subscribeToResponseOf(pattern);
+      await this.client.connect();
+    });
+  }
+
   async create(createMachineDto: CreateMachineDto): Promise<ICustomResponseService<MachineDto>> {
 
     const foundMachine = await this.prisma.machine.findFirst({
@@ -16,8 +44,9 @@ export class MachinesService {
         name: createMachineDto.name,
         deleted_at: null
       }
-    })
-    if (foundMachine) throw new ConflictException('Já existe uma máquina com este nome');
+    });
+
+    if (foundMachine) throw new ConflictException('Já existe uma máquina com este nome.');
 
     try {
       const CreatedMachine = await this.prisma.machine.create({ data: createMachineDto });
@@ -33,16 +62,12 @@ export class MachinesService {
     try {
       const skip = (page - 1) * pageSize;
 
-      let isNumeric = false;
       let processedSearch: string | undefined;
 
       if (search) {
         processedSearch = search.trim();
 
-        isNumeric = /^\d+$/.test(processedSearch);
-
         if (/['";]/.test(processedSearch)) throw new BadRequestException('Termo de busca inválido.');
-
       }
 
       const searchFilter = search
@@ -132,6 +157,19 @@ export class MachinesService {
         data: updateMachineDto
       });
 
+      if (updatedMachine.status !== foundMachine.status) {
+        console.log(updatedMachine.status);
+        this.client.emit(
+          'machine-event',
+          JSON.stringify({
+            event: 'update-status',
+            id,
+            updatedMachine,
+            timestamp: new Date(),
+          }),
+        );
+      }
+
       return { data: this.mapToDto(updatedMachine) };
 
     } catch (error) {
@@ -165,8 +203,10 @@ export class MachinesService {
     }
   }
 
+
   private mapToDto(machine: machine): MachineDto {
     return {
+      id: machine.id,
       name: machine.name,
       location: machine.location,
       status: machine.status as EStatus
