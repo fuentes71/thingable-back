@@ -7,6 +7,7 @@ import { machine, Prisma } from '@prisma/client';
 import { EStatus } from 'src/shared/enums';
 import { Client, ClientKafka, Transport } from '@nestjs/microservices';
 import { Partitioners } from 'kafkajs';
+import { EventsService } from 'src/events/events.service';
 
 @Injectable()
 export class MachinesService implements OnModuleInit {
@@ -29,7 +30,10 @@ export class MachinesService implements OnModuleInit {
   private client: ClientKafka;
   private requestPatterns = ['machine-event'];
 
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private event: EventsService
+  ) { }
   async onModuleInit(): Promise<void> {
     this.requestPatterns.map(async pattern => {
       this.client.subscribeToResponseOf(pattern);
@@ -50,6 +54,10 @@ export class MachinesService implements OnModuleInit {
 
     try {
       const CreatedMachine = await this.prisma.machine.create({ data: createMachineDto });
+
+      if (!CreatedMachine) throw new ConflictException('Nenhuma máquina foi criada.');
+
+      await this.event.create({ machineId: CreatedMachine.id });
 
       return { data: this.mapToDto(CreatedMachine) };
     } catch (error) {
@@ -158,7 +166,6 @@ export class MachinesService implements OnModuleInit {
       });
 
       if (updatedMachine.status !== foundMachine.status) {
-        console.log(updatedMachine.status);
         this.client.emit(
           'machine-event',
           JSON.stringify({
@@ -168,6 +175,8 @@ export class MachinesService implements OnModuleInit {
             timestamp: new Date(),
           }),
         );
+
+        await this.event.create({ machineId: id });
       }
 
       return { data: this.mapToDto(updatedMachine) };
