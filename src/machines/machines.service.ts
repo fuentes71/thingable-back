@@ -1,7 +1,10 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { ICustomResponseService } from 'src/shared/interfaces';
+import { QueryFilters } from 'src/shared/models';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMachineDto, MachineDto, UpdateMachineDto } from './dto';
+import { machine, Prisma } from '@prisma/client';
+import { EStatus } from 'src/shared/enums';
 
 @Injectable()
 export class MachinesService {
@@ -11,7 +14,7 @@ export class MachinesService {
     const foundMachine = await this.prisma.machine.findFirst({
       where: {
         name: createMachineDto.name,
-        delete_at: null
+        deleted_at: null
       }
     })
     if (foundMachine) throw new ConflictException('Já existe uma máquina com este nome');
@@ -19,23 +22,72 @@ export class MachinesService {
     try {
       const CreatedMachine = await this.prisma.machine.create({ data: createMachineDto });
 
-      return { data: CreatedMachine };
+      return { data: this.mapToDto(CreatedMachine) };
     } catch (error) {
       throw error;
     }
   }
 
-  async findAll(): Promise<ICustomResponseService<MachineDto[]>> {
+  async findAll(queryParams: QueryFilters): Promise<ICustomResponseService<MachineDto[]>> {
+    const { page, pageSize, search } = queryParams;
     try {
-      const foundMachines = await this.prisma.machine.findMany({
+      const skip = (page - 1) * pageSize;
+
+      let isNumeric = false;
+      let processedSearch: string | undefined;
+
+      if (search) {
+        processedSearch = search.trim();
+
+        isNumeric = /^\d+$/.test(processedSearch);
+
+        if (/['";]/.test(processedSearch)) throw new BadRequestException('Termo de busca inválido.');
+
+      }
+
+      const searchFilter = search
+        ?
+        { name: { contains: processedSearch, mode: Prisma.QueryMode.insensitive } }
+        : {};
+
+      const count = await this.prisma.machine.count({
         where: {
-          delete_at: null
+          deleted_at: null,
+          ...searchFilter
         }
+      });
+
+      const totalPages = Math.ceil(count / pageSize);
+
+      if (page > totalPages && totalPages > 0) throw new NotFoundException('Página não encontrada.');
+
+      if (!totalPages) throw new NotFoundException('Nenhuma máquina encontrada para a página solicitada.');
+
+      const foundMachines = await this.prisma.machine.findMany({
+        take: pageSize,
+        skip: skip,
+        orderBy: {
+          name: 'asc',
+        },
+        where: {
+          deleted_at: null,
+          ...searchFilter,
+        },
       });
 
       if (!foundMachines) throw new ConflictException('Nenhuma máquina encontrada.');
 
-      return { data: foundMachines };
+      const machines = foundMachines.map(machine => {
+        return this.mapToDto(machine);
+      });
+
+      return {
+        data: machines,
+        currentPage: page,
+        pageSize,
+        totalCount: count,
+        totalPages,
+      };
     } catch (error) {
       throw error;
     }
@@ -46,13 +98,13 @@ export class MachinesService {
       const foundMachine = await this.prisma.machine.findFirst({
         where: {
           id,
-          delete_at: null
+          deleted_at: null
         }
       });
 
       if (!foundMachine) throw new ConflictException('Nenhuma máquina encontrada.');
 
-      return { data: foundMachine };
+      return { data: this.mapToDto(foundMachine) };
     } catch (error) {
       throw error;
     }
@@ -62,7 +114,7 @@ export class MachinesService {
     const foundMachine = await this.prisma.machine.findFirst({
       where: {
         id,
-        delete_at: null
+        deleted_at: null
       }
     });
 
@@ -78,7 +130,7 @@ export class MachinesService {
         data: updateMachineDto
       });
 
-      return { data: updatedMachine };
+      return { data: this.mapToDto(updatedMachine) };
 
     } catch (error) {
       throw error;
@@ -89,7 +141,7 @@ export class MachinesService {
     const foundMachine = await this.prisma.machine.findFirst({
       where: {
         id,
-        delete_at: null
+        deleted_at: null
       }
     });
 
@@ -101,13 +153,21 @@ export class MachinesService {
           id
         },
         data: {
-          delete_at: new Date()
+          deleted_at: new Date()
         }
       });
 
       if (removedMachine) return { data: 'Máquina removida com sucesso!' };
     } catch (error) {
       throw error;
+    }
+  }
+
+  private mapToDto(machine: machine): MachineDto {
+    return {
+      name: machine.name,
+      location: machine.location,
+      status: machine.status as EStatus
     }
   }
 }

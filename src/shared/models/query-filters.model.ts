@@ -16,8 +16,8 @@ export class QueryFilters {
 
   @IsOptional()
   @Transform(({ value }) => (value ? value.trim() : value))
-  @IsString({ message: 'A pesquisa da notificação deve ser uma string.' })
-  @Length(2, 255, { message: 'A pesquisa da notificação deve ter entre 2 e 255 caracteres.' })
+  @IsString({ message: 'A pesquisa da máquina deve ser uma string.' })
+  @Length(2, 255, { message: 'A pesquisa da máquina deve ter entre 2 e 255 caracteres.' })
   @ValidateIf((obj, value) => value !== undefined)
   search?: string;
 }

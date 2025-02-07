@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { MachinesService } from './machines.service';import { CreateMachineDto, UpdateMachineDto } from './dto';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { MachinesService } from './machines.service'; import { CreateMachineDto, UpdateMachineDto } from './dto';
+import { QueryFilters } from 'src/shared/models';
 
 @Controller('machines')
 export class MachinesController {
-  constructor(private readonly machinesService: MachinesService) {}
+  constructor(private readonly machinesService: MachinesService) { }
 
   @Post()
   create(@Body() createMachineDto: CreateMachineDto) {
@@ -11,8 +12,8 @@ export class MachinesController {
   }
 
   @Get()
-  findAll() {
-    return this.machinesService.findAll();
+  findAll(@Query() queryParams?: QueryFilters) {
+    return this.machinesService.findAll(queryParams);
   }
 
   @Get(':id')
