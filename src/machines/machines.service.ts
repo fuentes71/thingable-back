@@ -25,7 +25,7 @@ export class MachinesService {
     }
   }
 
-async  findAll(): Promise<ICustomResponseService<MachineDto[]>> {
+  async findAll(): Promise<ICustomResponseService<MachineDto[]>> {
     try {
       const foundMachines = await this.prisma.machine.findMany({
         where: {
@@ -33,15 +33,15 @@ async  findAll(): Promise<ICustomResponseService<MachineDto[]>> {
         }
       });
 
-      if (!foundMachines) throw new ConflictException('Nenhuma máquina encontrada');
-      
+      if (!foundMachines) throw new ConflictException('Nenhuma máquina encontrada.');
+
       return { data: foundMachines };
     } catch (error) {
       throw error;
     }
   }
 
- async findOne(id: string): Promise<ICustomResponseService<MachineDto>> {
+  async findOne(id: string): Promise<ICustomResponseService<MachineDto>> {
     try {
       const foundMachine = await this.prisma.machine.findFirst({
         where: {
@@ -50,7 +50,7 @@ async  findAll(): Promise<ICustomResponseService<MachineDto[]>> {
         }
       });
 
-      if (!foundMachine) throw new ConflictException('Nenhuma máquina encontrada');
+      if (!foundMachine) throw new ConflictException('Nenhuma máquina encontrada.');
 
       return { data: foundMachine };
     } catch (error) {
@@ -58,11 +58,56 @@ async  findAll(): Promise<ICustomResponseService<MachineDto[]>> {
     }
   }
 
-  update(id: string, updateMachineDto: UpdateMachineDto) {
-    return `This action updates a #${id} machine`;
+  async update(id: string, updateMachineDto: UpdateMachineDto): Promise<ICustomResponseService<MachineDto>> {
+    const foundMachine = await this.prisma.machine.findFirst({
+      where: {
+        id,
+        delete_at: null
+      }
+    });
+
+    if (!foundMachine) throw new ConflictException('Nenhuma máquina encontrada.');
+
+    if (updateMachineDto === foundMachine) throw new ConflictException('Nenhuma informação nova foi passada para alterar.');
+
+    try {
+      const updatedMachine = await this.prisma.machine.update({
+        where: {
+          id
+        },
+        data: updateMachineDto
+      });
+
+      return { data: updatedMachine };
+
+    } catch (error) {
+      throw error;
+    }
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} machine`;
+  async remove(id: string): Promise<ICustomResponseService<string>> {
+    const foundMachine = await this.prisma.machine.findFirst({
+      where: {
+        id,
+        delete_at: null
+      }
+    });
+
+    if (!foundMachine) throw new ConflictException('Nenhuma máquina encontrada.');
+
+    try {
+      const removedMachine = await this.prisma.machine.update({
+        where: {
+          id
+        },
+        data: {
+          delete_at: new Date()
+        }
+      });
+
+      if (removedMachine) return { data: 'Máquina removida com sucesso!' };
+    } catch (error) {
+      throw error;
+    }
   }
 }
