@@ -9,10 +9,12 @@ import { CustomResponseInterceptor } from './shared/interceptors';
 import { ClassValidatorPipe } from './shared/pipes';
 import { ApiKeyMiddleware } from './shared/middleware';
 import { MachinesModule } from './machines/machines.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    PrismaModule,
     MachinesModule,
 
   ],
