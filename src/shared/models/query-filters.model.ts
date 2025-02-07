@@ -1,5 +1,6 @@
 import { Transform } from 'class-transformer';
-import { IsInt, IsOptional, IsPositive, IsString, Length, ValidateIf } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsPositive, IsString, Length, ValidateIf } from 'class-validator';
+import { EStatus } from '../enums';
 
 export class QueryFilters {
   @IsOptional()
@@ -19,5 +20,6 @@ export class QueryFilters {
   @IsString({ message: 'A pesquisa da máquina deve ser uma string.' })
   @Length(2, 255, { message: 'A pesquisa da máquina deve ter entre 2 e 255 caracteres.' })
   @ValidateIf((obj, value) => value !== undefined)
+  @IsEnum(EStatus, { message: 'O status da máquina deve ser um dos seguintes: OFF, OPERATING, MAINTENANCE_STOP' })
   search?: string;
 }

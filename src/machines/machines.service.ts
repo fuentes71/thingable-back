@@ -46,8 +46,10 @@ export class MachinesService {
       }
 
       const searchFilter = search
-        ?
-        { name: { contains: processedSearch, mode: Prisma.QueryMode.insensitive } }
+        ? {
+          OR: [
+            { status: { equals: processedSearch as EStatus } }]
+        }
         : {};
 
       const count = await this.prisma.machine.count({
