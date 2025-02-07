@@ -7,6 +7,7 @@ CREATE TABLE "machines" (
     "name" VARCHAR(255) NOT NULL,
     "location" VARCHAR NOT NULL,
     "status" "Estatus" NOT NULL,
+    "event_id" TEXT NOT NULL,
     "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP NOT NULL,
     "deleted_at" TIMESTAMP,
@@ -18,12 +19,9 @@ CREATE TABLE "machines" (
 CREATE TABLE "events" (
     "id" TEXT NOT NULL,
     "machine_id" TEXT NOT NULL,
-    "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP NOT NULL,
-    "deleted_at" TIMESTAMP,
 
     CONSTRAINT "events_pkey" PRIMARY KEY ("id")
 );
 
 -- AddForeignKey
-ALTER TABLE "events" ADD CONSTRAINT "events_machine_id_fkey" FOREIGN KEY ("machine_id") REFERENCES "machines"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "machine" ADD CONSTRAINT "machines_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "events"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

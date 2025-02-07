@@ -10,12 +10,14 @@ import { ClassValidatorPipe } from './shared/pipes';
 import { ApiKeyMiddleware } from './shared/middleware';
 import { MachinesModule } from './machines/machines.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     PrismaModule,
     MachinesModule,
+    EventsModule,
   ],
   controllers: [AppController],
   providers: [
