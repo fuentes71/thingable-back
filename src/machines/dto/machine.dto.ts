@@ -26,15 +26,19 @@ export class CreateMachineDto {
   @IsString({ message: 'O nome da máquina deve ser uma string.' })
   @IsNotEmpty({ message: 'O nome da máquina é obrigatório.' })
   name: string;
+}
 
-  @IsString({ message: 'A localização deve ser uma string.' })
-  @IsNotEmpty({ message: 'A localização é obrigatória.' })
-  location: string;
+export class UpdateMachineDto extends PartialType(CreateMachineDto) { }
 
-  @IsNotEmpty({ message: 'O status da máquina deve ser uma string.' })
+export class UpdateMachineStatusDto {
+  @IsString({ message: 'O status da máquina deve ser uma string.' })
   @IsNotEmpty({ message: 'O status da máquina é obrigatório.' })
   @IsEnum(EStatus, { message: 'O status da máquina deve ser um dos seguintes: OFF, OPERATING, MAINTENANCE_STOP.' })
   status: EStatus;
 }
 
-export class UpdateMachineDto extends PartialType(CreateMachineDto) { }
+export class UpadteMachineLocationDto {
+  @IsString({ message: 'A localização deve ser uma string.' })
+  @IsNotEmpty({ message: 'A localização é obrigatória.' })
+  location: string;
+}

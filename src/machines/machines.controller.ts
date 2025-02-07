@@ -1,8 +1,12 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+
 import { QueryFilters } from 'src/shared/models';
-import { CreateMachineDto, UpdateMachineDto } from './dto';
+import { CreateMachineDto, UpadteMachineLocationDto, UpdateMachineStatusDto } from './dto';
+
 import { MachinesService } from './machines.service';
 
+@ApiTags('Máquinas')
 @Controller('machines')
 export class MachinesController {
   constructor(private readonly machinesService: MachinesService) { }
@@ -22,9 +26,13 @@ export class MachinesController {
     return this.machinesService.findOne(id);
   }
 
-  @Put(':id')
-  update(@Param('id') id: string, @Body() updateMachineDto: UpdateMachineDto) {
-    return this.machinesService.update(id, updateMachineDto);
+  @Put('status/:id')
+  updateStatus(@Param('id') id: string, @Body() updateMachineStatusDto: UpdateMachineStatusDto) {
+    return this.machinesService.updateStatus(id, updateMachineStatusDto);
+  }
+  @Put('location/:id')
+  updateLocation(@Param('id') id: string, @Body() updateMachineLocationDto: UpadteMachineLocationDto) {
+    return this.machinesService.updateLocation(id, updateMachineLocationDto);
   }
 
   @Delete(':id')

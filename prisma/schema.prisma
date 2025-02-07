@@ -25,21 +25,18 @@ model machine {
   name       String    @db.VarChar(255)
   location   String    @db.VarChar()
   status     Estatus
-  event_id   String
   created_at DateTime  @default(now()) @db.Timestamp()
   updated_at DateTime  @updatedAt @db.Timestamp()
+  events     event[]
   deleted_at DateTime? @db.Timestamp()
-
-  event event? @relation(fields: [event_id], references: [id])
 
   @@map("machines")
 }
 
 model event {
-  id         String @id @default(uuid())
+  id         String  @id @default(uuid())
+  machine    machine @relation(fields: [machine_id], references: [id])
   machine_id String
-
-  machine machine[]
 
   @@map("events")
 }

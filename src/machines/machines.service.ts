@@ -1,13 +1,13 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { Client, ClientKafka, Transport } from '@nestjs/microservices';
+import { machine } from '@prisma/client';
+import { Partitioners } from 'kafkajs';
+import { EventsService } from 'src/events/events.service';
+import { EStatus } from 'src/shared/enums';
 import { ICustomResponseService } from 'src/shared/interfaces';
 import { QueryFilters } from 'src/shared/models';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateMachineDto, MachineDto, UpdateMachineDto } from './dto';
-import { machine, Prisma } from '@prisma/client';
-import { EStatus } from 'src/shared/enums';
-import { Client, ClientKafka, Transport } from '@nestjs/microservices';
-import { Partitioners } from 'kafkajs';
-import { EventsService } from 'src/events/events.service';
+import { CreateMachineDto, MachineDto, UpadteMachineLocationDto, UpdateMachineDto, UpdateMachineStatusDto } from './dto';
 
 @Injectable()
 export class MachinesService implements OnModuleInit {
@@ -53,7 +53,13 @@ export class MachinesService implements OnModuleInit {
     if (foundMachine) throw new ConflictException('Já existe uma máquina com este nome.');
 
     try {
-      const CreatedMachine = await this.prisma.machine.create({ data: createMachineDto });
+      const CreatedMachine = await this.prisma.machine.create({
+        data: {
+          name: createMachineDto.name,
+          location: '',
+          status: EStatus.OFF,
+        }
+      });
 
       if (!CreatedMachine) throw new ConflictException('Nenhuma máquina foi criada.');
 
@@ -145,7 +151,8 @@ export class MachinesService implements OnModuleInit {
     }
   }
 
-  async update(id: string, updateMachineDto: UpdateMachineDto): Promise<ICustomResponseService<MachineDto>> {
+
+  async updateStatus(id: string, updateMachineStatusDto: UpdateMachineStatusDto): Promise<ICustomResponseService<MachineDto>> {
     const foundMachine = await this.prisma.machine.findFirst({
       where: {
         id,
@@ -155,32 +162,55 @@ export class MachinesService implements OnModuleInit {
 
     if (!foundMachine) throw new ConflictException('Nenhuma máquina encontrada.');
 
-    if (updateMachineDto === foundMachine) throw new ConflictException('Nenhuma informação nova foi passada para alterar.');
+    if (foundMachine.status === updateMachineStatusDto.status) throw new ConflictException('O status informado é igual ao anterior.');
 
     try {
-      const updatedMachine = await this.prisma.machine.update({
+      const updateMachine = await this.prisma.machine.update({
         where: {
           id
         },
-        data: updateMachineDto
+        data: {
+          status: updateMachineStatusDto.status
+        }
       });
 
-      if (updatedMachine.status !== foundMachine.status) {
-        this.client.emit(
-          'machine-event',
-          JSON.stringify({
-            event: 'update-status',
-            id,
-            updatedMachine,
-            timestamp: new Date(),
-          }),
-        );
+      this.client.emit(
+        'machine-event',
+        JSON.stringify({
+          event: 'update-status',
+          id,
+          updateMachine,
+          timestamp: new Date(),
+        }),
+      );
 
-        await this.event.create({ machineId: id });
+      return { data: this.mapToDto(updateMachine) };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateLocation(id: string, upadteMachineLocationDto: UpadteMachineLocationDto): Promise<ICustomResponseService<MachineDto>> {
+    const foundMachine = await this.prisma.machine.findFirst({
+      where: {
+        id,
+        deleted_at: null
       }
+    });
 
-      return { data: this.mapToDto(updatedMachine) };
+    if (!foundMachine) throw new ConflictException('Nenhuma máquina encontrada.');
 
+    try {
+      const updateMachine = await this.prisma.machine.update({
+        where: {
+          id
+        },
+        data: {
+          location: upadteMachineLocationDto.location
+        }
+      });
+
+      return { data: this.mapToDto(updateMachine) };
     } catch (error) {
       throw error;
     }

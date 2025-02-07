@@ -26,7 +26,7 @@ export class EventsService {
 
     try {
       const foundEvents = await this.prisma.event.findMany({
-        include: { machines: true },
+        include: { machine: true },
       });
 
       if (!foundEvents) throw new Error('Não foi possível encontrar os eventos.');
