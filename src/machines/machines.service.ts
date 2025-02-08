@@ -5,9 +5,8 @@ import { Partitioners } from 'kafkajs';
 import { EventsService } from 'src/events/events.service';
 import { EStatus } from 'src/shared/enums';
 import { ICustomResponseService } from 'src/shared/interfaces';
-import { QueryFilters } from 'src/shared/models';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateMachineDto, MachineDto, UpadteMachineLocationDto, UpdateMachineDto, UpdateMachineStatusDto } from './dto';
+import { CreateMachineDto, MachineDto, QueryFilterMachines, UpadteMachineLocationDto, UpdateMachineStatusDto } from './dto';
 
 @Injectable()
 export class MachinesService implements OnModuleInit {
@@ -71,23 +70,22 @@ export class MachinesService implements OnModuleInit {
     }
   }
 
-  async findAll(queryParams: QueryFilters): Promise<ICustomResponseService<MachineDto[]>> {
+  async findAll(queryParams: QueryFilterMachines): Promise<ICustomResponseService<MachineDto[]>> {
     const { page, pageSize, search } = queryParams;
     try {
       const skip = (page - 1) * pageSize;
 
-      let processedSearch: string | undefined;
+      let processedSearch: EStatus | undefined;
 
       if (search) {
-        processedSearch = search.trim();
+        processedSearch = search.trim() as EStatus;
 
-        if (/['";]/.test(processedSearch)) throw new BadRequestException('Termo de busca inválido.');
+        if (!Object.values(EStatus).includes(processedSearch)) throw new BadRequestException('Status inválido.');
       }
 
       const searchFilter = search
         ? {
-          OR: [
-            { status: { equals: processedSearch as EStatus } }]
+          status: { equals: processedSearch }
         }
         : {};
 
@@ -118,12 +116,8 @@ export class MachinesService implements OnModuleInit {
 
       if (!foundMachines) throw new ConflictException('Nenhuma máquina encontrada.');
 
-      const machines = foundMachines.map(machine => {
-        return this.mapToDto(machine);
-      });
-
       return {
-        data: machines,
+        data: foundMachines.map(machine => this.mapToDto(machine)),
         currentPage: page,
         pageSize,
         totalCount: count,
@@ -151,7 +145,6 @@ export class MachinesService implements OnModuleInit {
     }
   }
 
-
   async updateStatus(id: string, updateMachineStatusDto: UpdateMachineStatusDto): Promise<ICustomResponseService<MachineDto>> {
     const foundMachine = await this.prisma.machine.findFirst({
       where: {
@@ -177,7 +170,7 @@ export class MachinesService implements OnModuleInit {
       this.client.emit(
         'machine-event',
         JSON.stringify({
-          event: 'update-status',
+          event: 'update-status-event',
           id,
           updateMachine,
           timestamp: new Date(),

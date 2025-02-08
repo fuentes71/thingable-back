@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { CreateEventDto } from './dto';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { ICustomResponseService, IEvent } from 'src/shared/interfaces';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { event, machine } from '@prisma/client';
+
+import { PrismaService } from 'src/prisma/prisma.service';
+
+import { ICustomResponseService, IEvent } from 'src/shared/interfaces';
+import { CreateEventDto, QueryFilterEvents } from './dto';
 
 @Injectable()
 export class EventsService {
@@ -22,12 +24,38 @@ export class EventsService {
     }
   }
 
-  async findAll(): Promise<ICustomResponseService<IEvent[]>> {
-
+  async findAll(queryParams: QueryFilterEvents): Promise<ICustomResponseService<IEvent[]>> {
+    const { page, pageSize, search } = queryParams;
     try {
+      const skip = (page - 1) * pageSize;
+
+      const searchFilter = search
+        ? {
+          machine_id: { equals: search.trim() }
+        }
+        : {};
+
+      const count = await this.prisma.event.count({
+        where: {
+          ...searchFilter
+        }
+      });
+
+      const totalPages = Math.ceil(count / pageSize);
+
+      if (page > totalPages && totalPages > 0) throw new NotFoundException('Página não encontrada.');
+
+      if (!totalPages) throw new NotFoundException('Nenhuma máquina encontrada para a página solicitada.');
+
       const foundEvents = await this.prisma.event.findMany({
+        take: pageSize,
+        skip: skip,
+        where: {
+          ...searchFilter,
+        },
         include: { machine: true },
       });
+
 
       if (!foundEvents) throw new Error('Não foi possível encontrar os eventos.');
 
