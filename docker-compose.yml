@@ -1,8 +1,8 @@
 version: '3.8'
 
 services:
-  thingable-nest-api:
-    container_name: thingable-nest-api
+  control-service-nest-api:
+    container_name: control-service-nest-api
     build:
       context: .
       dockerfile: Dockerfile
@@ -17,7 +17,7 @@ services:
       - thingable
     restart: always
     depends_on:
-      - thingable-pg-db
+      - control-service-pg-db
       - kafka
     env_file:
       - .docker.env
@@ -48,13 +48,13 @@ services:
     depends_on:
       - zookeeper
 
-  thingable-pg-db:
+  control-service-pg-db:
     image: postgres:13
-    container_name: thingable-pg-db
+    container_name: control-service-pg-db
     environment:
-      POSTGRES_PASSWORD: thingable2024
+      POSTGRES_PASSWORD: thingable2025
       POSTGRES_USER: user
-      POSTGRES_DB: thingable_service
+      POSTGRES_DB: thingable_control_service
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - 5435:5432
