@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MachinesService } from './machines.service';
 import { MachinesController } from './machines.controller';
-import { EventsService } from 'src/events/events.service';
+import { EventsService } from '../events/events.service';
 
 @Module({
   controllers: [MachinesController],
