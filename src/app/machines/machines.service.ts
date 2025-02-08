@@ -2,11 +2,11 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException, 
 import { Client, ClientKafka, Transport } from '@nestjs/microservices';
 import { machine } from '@prisma/client';
 import { Partitioners } from 'kafkajs';
-import { EventsService } from 'src/events/events.service';
 import { EStatus } from 'src/shared/enums';
 import { ICustomResponseService } from 'src/shared/interfaces';
-import { PrismaService } from '../prisma/prisma.service';
 import { CreateMachineDto, MachineDto, QueryFilterMachines, UpadteMachineLocationDto, UpdateMachineStatusDto } from './dto';
+import { EventsService } from '../events/events.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class MachinesService implements OnModuleInit {
