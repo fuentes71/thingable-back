@@ -13,6 +13,8 @@ import { CustomExceptionFilter } from './shared/filters';
 import { CustomResponseInterceptor } from './shared/interceptors';
 import { ApiKeyMiddleware } from './shared/middleware';
 import { ClassValidatorPipe } from './shared/pipes';
+import { TelemetryGateway } from './app/telemetry/telemetry.gateway';
+
 
 @Module({
   imports: [
@@ -36,6 +38,7 @@ import { ClassValidatorPipe } from './shared/pipes';
       provide: APP_PIPE,
       useClass: ClassValidatorPipe,
     },
+    TelemetryGateway,
   ],
 })
 export class AppModule {

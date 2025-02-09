@@ -1,99 +1,124 @@
+<h1 align="center" style="font-weight: bold;">Thingable - API do Módulo de Controle</h1>
+
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+ <a href="#started">Começando</a> • 
+  <a href="#routes">Endpoints da API</a> •
+ <a href="#patterns">Padrões</a> •
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+<p align="center">
+  <b>Aplicação Back-end do Módulo de Controle</b>
 </p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+<h2 id="started">🚀 Começando</h2>
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+<h3>Pré-requisitos</h3>
 
-## Project setup
+- [NodeJS](https://nodejs.org/en)
+- [Git](https://git-scm.com/)
+- [NPM](https://docs.npmjs.com/cli) ou [Yarn](https://classic.yarnpkg.com/pt-BR/docs/cli)
+- [NestJS](https://docs.nestjs.com/cli/overview)
+- [Docker](https://www.docker.com/get-started/)
+- [Docker compose](https://docs.docker.com/compose/)
 
-```bash
-$ npm install
-```
+---
 
-## Compile and run the project
+<h3> Variáveis de Ambiente</h3>
 
-```bash
-# development
-$ npm run start
+Use o arquivo `.env.example` e `.docker.env.example` como referência para criar seus arquivos de configuração .env.
 
-# watch mode
-$ npm run start:dev
+---
 
-# production mode
-$ npm run start:prod
-```
+<h3>Autenticação entre serviços</h3>
 
-## Run tests
+Este projeto utiliza autenticação baseada em chaves (API-KEY) para a comunicação entre os microsserviços, garantindo assim segurança e controle de acesso.
 
-```bash
-# unit tests
-$ npm run test
+Pontos essenciais que devem ser atendidos para implementar a autenticação baseada em chaves:
 
-# e2e tests
-$ npm run test:e2e
+- <b>Configuração e gerenciamento das chaves de API</b>: As chaves de API deverão ser configuradas e gerenciadas nas variáveis de ambiente para facilitar o controle e atualizações necessárias.
 
-# test coverage
-$ npm run test:cov
-```
+- <b>Tratamento de erros</b>: Em caso de fornecimento de uma API-KEY inválida, o serviço retornará um erro de autenticação apropriado, comunicando claramente a falha na autenticação.
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+<h3>Iniciando o projeto de forma manual</h3>
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Como instalar e iniciar seu projeto
+
+1 - Instalar as dependências
 
 ```bash
-$ npm install -g mau
-$ mau deploy
+npm run install
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+2 - Executar arquivos de migração
 
-## Resources
+```bash
+npm run db:migrate
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+3 - Configurar o Prisma
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+npx prisma generate
+```
 
-## Support
+4 - Executar seeds
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+npm run db:seed
+```
 
-## Stay in touch
+5 - Subir containers
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+docker-compose up
+```
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+<h3 id="routes">📍 Endpoints da API</h3>
+
+A documentação dos endpoints da API pode ser encontrada após executar o projeto e acessar http://localhost:8080/control-service/api/docs.
+
+---
+
+
+<h3 id="patterns"> 📝 Padrões do Projeto</h3>
+
+##### Nome da Classe: Padrão PascalCase
+
+- Exemplo: CreateExemple
+
+---
+
+##### Nome da Entidade: Padrão PascalCase e sempre no singular
+
+- Exemplo: NewEntity
+
+---
+
+##### Nome do Arquivo: Padrão kebab-case
+
+- Exemplo: new-feature.service.ts
+
+---
+
+##### Nome dos Métodos da Classe: Padrão camelCase
+
+- Exemplo: getExemple
+
+---
+
+##### Nome da Variável: Padrão camelCase
+
+- Exemplo: const newExemple
+
+---
+
+##### Nome da Pasta/Característica: Padrão kebab-case e sempre no plural
+
+- Exemplo: generic-exemple ou generic-features
+
+- Service: Um único arquivo contendo todos os métodos
+- Controller: Um único arquivo contendo todos os métodos

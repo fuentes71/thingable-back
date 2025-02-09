@@ -1,6 +1,5 @@
 import { Transform } from 'class-transformer';
-import { IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
-import { QueryFilters } from 'src/shared/models';
+import { IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, Length } from 'class-validator';
 
 export class CreateEventDto {
   @IsString({ message: 'O id da máquina deve ser uma string.' })
@@ -8,7 +7,19 @@ export class CreateEventDto {
   machineId: string;
 }
 
-export class QueryFilterEvents extends QueryFilters {
+export class QueryFilter {
+  @IsOptional()
+  @Transform(({ value }) => (value = Number(value)))
+  @IsPositive({ message: 'page deve ser um valor positivo.' })
+  @IsInt({ message: 'page deve ser um número inteiro.' })
+  page?: number = 1;
+
+  @IsOptional()
+  @Transform(({ value }) => (value = Number(value)))
+  @IsPositive({ message: 'pageSize deve ser um valor positivo.' })
+  @IsInt({ message: 'pageSize deve ser um número inteiro.' })
+  pageSize?: number = 50;
+  
   @IsOptional()
   @Transform(({ value }) => (value ? value.trim() : value))
   @IsString({ message: 'O id da máquina deve ser uma string.' })

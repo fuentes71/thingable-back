@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 
-import { CreateEventDto, QueryFilterEvents } from './dto';
+import { CreateEventDto, QueryFilter } from './dto';
 
 import { MessagePattern } from '@nestjs/microservices';
 import { EventsService } from './events.service';
@@ -13,13 +13,12 @@ export class EventsController {
 
   @Post()
   @MessagePattern('update-status-event')
-
   create(@Body() createEventDto: CreateEventDto) {
     return this.eventsService.create(createEventDto);
   }
 
   @Get()
-  findAll(@Query() queryParams: QueryFilterEvents) {
+  findAll(@Query() queryParams: QueryFilter) {
     return this.eventsService.findAll(queryParams);
   }
 

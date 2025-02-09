@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-import { CreateMachineDto, QueryFilterMachines, UpadteMachineLocationDto, UpdateMachineStatusDto } from './dto';
+import { CreateMachineDto, QueryFilter, UpadteMachineLocationDto, UpdateMachineStatusDto } from './dto';
 
 import { createMachineResponse } from 'src/swagger';
 import { MachinesService } from './machines.service';
@@ -23,7 +23,7 @@ export class MachinesController {
   @Get()
   @ApiOperation({ summary: 'Buscar todas as máquinas.' })
 
- async findAll(@Query() queryParams?: QueryFilterMachines) {
+ async findAll(@Query() queryParams?: QueryFilter) {
   const machines = await this.machinesService.findAll(queryParams);
   return machines;
   }

@@ -4,7 +4,7 @@ import { event, machine } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 import { ICustomResponseService, IEvent } from 'src/shared/interfaces';
-import { CreateEventDto, QueryFilterEvents } from './dto';
+import { CreateEventDto, QueryFilter } from './dto';
 
 @Injectable()
 export class EventsService {
@@ -24,7 +24,7 @@ export class EventsService {
     }
   }
 
-  async findAll(queryParams: QueryFilterEvents): Promise<ICustomResponseService<IEvent[]>> {
+  async findAll(queryParams: QueryFilter): Promise<ICustomResponseService<IEvent[]>> {
     const { page, pageSize, search } = queryParams;
     try {
       const skip = (page - 1) * pageSize;
@@ -45,7 +45,7 @@ export class EventsService {
 
       if (page > totalPages && totalPages > 0) throw new NotFoundException('Página não encontrada.');
 
-      if (!totalPages) throw new NotFoundException('Nenhuma máquina encontrada para a página solicitada.');
+      if (!totalPages) throw new NotFoundException('Máquina não encontrada para a página solicitada.');
 
       const foundEvents = await this.prisma.event.findMany({
         take: pageSize,

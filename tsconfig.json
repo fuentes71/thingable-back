@@ -11,6 +11,8 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
