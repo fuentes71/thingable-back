@@ -1,40 +1,68 @@
+import { EStatus } from "src/shared/enums";
+
 export const createMachineResponse = {
   201: {
     status: 201,
+    description: 'Máquina criada com sucesso.',
     schema: {
-      code: 201,
-      success: true,
-      data: {
-        id: 'any_id',
-        name: 'any_name',
-        location: 'any_location',
-        status: 'OFF'
-      }
+      type: 'object',
+      properties: {
+        code: { type: 'number', example: 201 },
+        success: { type: 'boolean', example: true },
+        data: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: 'any_id' },
+            name: { type: 'string', example: 'any_name' },
+            location: { type: 'string', example: '' },
+            status: { type: 'string', enum: EStatus, example: EStatus.OFF },
+          }
+        }
+      },
     }
   },
   400: {
     status: 400,
+    description: 'Existem campos inválidos na requisição.',
     schema: {
-      code: 400,
-      success: false,
-      error: {
-        message: 'Existem campos inválidos na requisição',
-        details: [
-          {
-            field: 'any_field',
-            messages: 'any_message.'
+      type: 'object',
+      properties: {
+        code: { type: 'number', example: 400 },
+        success: { type: 'boolean', example: false },
+        error: {
+          type: 'object',
+          properties: {
+            message: { type: 'string', example: 'Existem campos inválidos na requisição.' },
+            details: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  field: { type: 'string', example: 'any_field.' },
+                  messages: { type: 'string', example: 'any_message.' }
+                }
+              }
+            }
           }
-        ]
+        }
       }
     }
   },
-  409: {
-    status: 409,
+  404: {
+    status: 404,
+    description: 'Máquina não encontrada.',
     schema: {
-      code: 409,
-      success: false,
-      error: {
-        message: 'Já existe uma máquina com este nome.'
+      type: 'object',
+      properties: {
+        code: { type: 'number', example: 404 },
+        success: { type: 'boolean', example: false },
+        error: {
+          type: 'object',
+          properties: {
+            message: { type: 'string', example: 'any_message.' },
+            process: { type: 'string', example: 'any_process.' }
+          }
+        }
       }
     }
   }

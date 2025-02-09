@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CreateEventDto, QueryFilter } from './dto';
 
@@ -18,6 +18,7 @@ export class EventsController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Buscar todos os eventos.' })
   findAll(@Query() queryParams: QueryFilter) {
     return this.eventsService.findAll(queryParams);
   }

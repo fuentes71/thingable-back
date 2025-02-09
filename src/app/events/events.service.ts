@@ -10,6 +10,7 @@ import { CreateEventDto, QueryFilter } from './dto';
 export class EventsService {
 
   constructor(private prisma: PrismaService) { }
+  
   async create(createEventDto: CreateEventDto): Promise<ICustomResponseService<string>> {
     try {
       const createdEvent = await this.prisma.event.create({

@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { CreateMachineDto, QueryFilter, UpadteMachineLocationDto, UpdateMachineStatusDto } from './dto';
 
@@ -13,19 +13,19 @@ export class MachinesController {
 
   @Post()
   @ApiOperation({ summary: 'Cria uma nova máquina.' })
-  @ApiResponse(createMachineResponse[201])
-  @ApiResponse(createMachineResponse[400])
-  @ApiResponse(createMachineResponse[409])
+  // Criado exemplos somente para o create, mas podem ser usados em outros endpoints... a intenção foi mostrar como se usa.
+  @ApiCreatedResponse(createMachineResponse[201])
+  @ApiBadRequestResponse(createMachineResponse[400])
+  @ApiConflictResponse(createMachineResponse[409])
   create(@Body() createMachineDto: CreateMachineDto) {
     return this.machinesService.create(createMachineDto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Buscar todas as máquinas.' })
-
- async findAll(@Query() queryParams?: QueryFilter) {
-  const machines = await this.machinesService.findAll(queryParams);
-  return machines;
+  async findAll(@Query() queryParams?: QueryFilter) {
+    const machines = await this.machinesService.findAll(queryParams);
+    return machines;
   }
 
   @Get(':id')
@@ -52,3 +52,4 @@ export class MachinesController {
     return this.machinesService.remove(id);
   }
 }
+
