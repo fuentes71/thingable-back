@@ -72,7 +72,7 @@ npm run db:seed
 5 - Subir containers
 
 ```bash
-docker-compose up
+docker-compose up --build
 ```
 
 ---
