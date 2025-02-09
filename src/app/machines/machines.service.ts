@@ -1,12 +1,12 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
-import { Client, ClientKafka, MessagePattern, Transport } from '@nestjs/microservices';
+import { Client, ClientKafka, Transport } from '@nestjs/microservices';
 import { machine } from '@prisma/client';
 import { Partitioners } from 'kafkajs';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { EStatus } from 'src/shared/enums';
 import { ICustomResponseService, IMachine } from 'src/shared/interfaces';
-import { CreateMachineDto, MachineDto, QueryFilter, UpadteMachineLocationDto, UpdateMachineStatusDto } from './dto';
 import { EventsService } from '../events/events.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateMachineDto, QueryFilter, UpadteMachineLocationDto, UpdateMachineStatusDto } from './dto';
 
 @Injectable()
 export class MachinesService implements OnModuleInit {
@@ -49,22 +49,25 @@ export class MachinesService implements OnModuleInit {
       }
     });
 
-    if (foundMachine) throw new ConflictException('Já existe uma máquina com este nome.');
+    if (foundMachine) throw new NotFoundException('Já existe uma máquina com este nome.');
 
     try {
-      const CreatedMachine = await this.prisma.machine.create({
+      const createdMachine = await this.prisma.machine.create({
         data: {
           name: createMachineDto.name,
-          location: null,
+          location: '',
           status: EStatus.OFF,
         }
       });
 
-      if (!CreatedMachine) throw new ConflictException('Nenhuma máquina foi criada.');
+      this.client.emit(
+        'machine-event',
+        JSON.stringify({
+          machineId: createdMachine.id,
+        }),
+      );
 
-      await this.event.create({ machineId: CreatedMachine.id });
-
-      return { data: this.mapToDto(CreatedMachine) };
+      return { data: this.mapToDto(createdMachine) };
     } catch (error) {
       throw error;
     }
@@ -77,11 +80,7 @@ export class MachinesService implements OnModuleInit {
 
       let processedSearch: EStatus | undefined;
 
-      if (search) {
-        processedSearch = search.trim() as EStatus;
-
-        if (!Object.values(EStatus).includes(processedSearch)) throw new BadRequestException('Status inválido.');
-      }
+      if (search) processedSearch = search.trim() as EStatus;
 
       const searchFilter = search
         ? {
@@ -89,32 +88,33 @@ export class MachinesService implements OnModuleInit {
         }
         : {};
 
-      const count = await this.prisma.machine.count({
-        where: {
-          deleted_at: null,
-          ...searchFilter
-        }
-      });
+      const [count, foundMachines] = await this.prisma.$transaction([
+        this.prisma.machine.count({
+          where: {
+            deleted_at: null,
+            ...searchFilter
+          }
+        }),
+        this.prisma.machine.findMany({
+          take: pageSize,
+          skip: skip,
+          orderBy: {
+            name: 'asc',
+          },
+          where: {
+            deleted_at: null,
+            ...searchFilter,
+          },
+        }),
+      ]);
 
       const totalPages = Math.ceil(count / pageSize);
 
       if (page > totalPages && totalPages > 0) throw new NotFoundException('Página não encontrada.');
 
-      if (!totalPages) throw new NotFoundException('Máquina não encontrada para a página solicitada.');
+      if (!totalPages) throw new NotFoundException('Nenhuma máquina encontrada para a página solicitada.');
 
-      const foundMachines = await this.prisma.machine.findMany({
-        take: pageSize,
-        skip: skip,
-        orderBy: {
-          name: 'asc',
-        },
-        where: {
-          deleted_at: null,
-          ...searchFilter,
-        },
-      });
-
-      if (!foundMachines) throw new ConflictException('Máquina não encontrada.');
+      if (!foundMachines) throw new NotFoundException('Nenhuma máquina encontrada.');
 
       return {
         data: foundMachines.map(machine => this.mapToDto(machine)),
@@ -137,7 +137,7 @@ export class MachinesService implements OnModuleInit {
         }
       });
 
-      if (!foundMachine) throw new ConflictException('Máquina não encontrada.');
+      if (!foundMachine) throw new NotFoundException('Máquina não encontrada.');
 
       return { data: this.mapToDto(foundMachine) };
     } catch (error) {
@@ -153,7 +153,7 @@ export class MachinesService implements OnModuleInit {
       }
     });
 
-    if (!foundMachine) throw new ConflictException('Máquina não encontrada.');
+    if (!foundMachine) throw new NotFoundException('Máquina não encontrada.');
 
     if (foundMachine.status === updateMachineStatusDto.status) throw new ConflictException('O status informado é igual ao anterior.');
 
@@ -170,10 +170,8 @@ export class MachinesService implements OnModuleInit {
       this.client.emit(
         'machine-event',
         JSON.stringify({
-          event: 'update-status-event',
-          id,
-          updateMachine,
-          timestamp: new Date(),
+          event: 'machine-event',
+          machineId:id,
         }),
       );
 
@@ -191,7 +189,7 @@ export class MachinesService implements OnModuleInit {
       }
     });
 
-    if (!foundMachine) throw new ConflictException('Máquina não encontrada.');
+    if (!foundMachine) throw new NotFoundException('Máquina não encontrada.');
 
     try {
       const updateMachine = await this.prisma.machine.update({
@@ -217,7 +215,7 @@ export class MachinesService implements OnModuleInit {
       }
     });
 
-    if (!foundMachine) throw new ConflictException('máquina não encontrada.');
+    if (!foundMachine) throw new NotFoundException('máquina não encontrada.');
 
     try {
       const removedMachine = await this.prisma.machine.update({
@@ -226,6 +224,9 @@ export class MachinesService implements OnModuleInit {
         },
         data: {
           deleted_at: new Date()
+        },
+        include:{
+          events: true
         }
       });
 

@@ -11,16 +11,15 @@ import { EventsService } from './events.service';
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
-  @Post()
-  @MessagePattern('update-status-event')
-  create(@Body() createEventDto: CreateEventDto) {
-    return this.eventsService.create(createEventDto);
-  }
-
   @Get()
   @ApiOperation({ summary: 'Buscar todos os eventos.' })
   findAll(@Query() queryParams: QueryFilter) {
     return this.eventsService.findAll(queryParams);
   }
 
+  @MessagePattern('machine-event')
+  create(@Body() createEventDto: CreateEventDto) {
+    console.log('aaaaaaaaa', createEventDto);
+    return this.eventsService.create(createEventDto);
+  }
 }

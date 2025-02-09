@@ -17,7 +17,7 @@ export class EventsService {
         data: { machine_id: createEventDto.machineId },
       });
 
-      if (!createdEvent) throw new Error('Não foi possível cadastrar o evento.');
+      if (!createdEvent) throw new NotFoundException('Não foi possível cadastrar o evento.');
 
       return { data: 'Evento criado com sucesso!' };
     } catch (error) {
@@ -36,33 +36,31 @@ export class EventsService {
         }
         : {};
 
-      const count = await this.prisma.event.count({
-        where: {
-          ...searchFilter
-        }
-      });
+      const [count, foundEvents] = await this.prisma.$transaction([
+        this.prisma.event.count({
+          where: {
+            ...searchFilter
+          }
+        }),
+        this.prisma.event.findMany({
+          take: pageSize,
+          skip: skip,
+          where: {
+            ...searchFilter,
+          },
+          include: { machine: true },
+        }),
+      ]);
 
-      const totalPages = Math.ceil(count / pageSize);
+      if (page > Math.ceil(count / pageSize) && count > 0) throw new NotFoundException('Página não encontrada.');
 
-      if (page > totalPages && totalPages > 0) throw new NotFoundException('Página não encontrada.');
+      if (!count) throw new NotFoundException('Máquina não encontrada para a página solicitada.');
 
-      if (!totalPages) throw new NotFoundException('Máquina não encontrada para a página solicitada.');
-
-      const foundEvents = await this.prisma.event.findMany({
-        take: pageSize,
-        skip: skip,
-        where: {
-          ...searchFilter,
-        },
-        include: { machine: true },
-      });
-
-
-      if (!foundEvents) throw new Error('Não foi possível encontrar os eventos.');
+      if (!foundEvents) throw new NotFoundException('Não foi possível encontrar os eventos.');
 
       const events: IEvent[] = foundEvents.map(this.mapToEntity.bind(this));
 
-      return { data: events };
+      return { data: events, currentPage: page, pageSize, totalCount: count, totalPages: Math.ceil(count / pageSize) };
     } catch (error) {
       throw error;
     }
