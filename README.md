@@ -14,9 +14,9 @@
 
 <h3>Pré-requisitos</h3>
 
-- [NodeJS](https://nodejs.org/en)
+- [NodeJS](https://nodejs.org/en) nas versões 18.15 ou 20
 - [Git](https://git-scm.com/)
-- [NPM](https://docs.npmjs.com/cli) ou [Yarn](https://classic.yarnpkg.com/pt-BR/docs/cli)
+- [NPM](https://docs.npmjs.com/cli) na versão 10.8
 - [NestJS](https://docs.nestjs.com/cli/overview)
 - [Docker](https://www.docker.com/get-started/)
 - [Docker compose](https://docs.docker.com/compose/)
